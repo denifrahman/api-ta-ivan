@@ -22,6 +22,8 @@ router.route('/prodis')
         for (const [key, value] of Object.entries(data)) {
             if (key == 'q') {
                 query_like.push({ nama: { [Op.like]: `%${value}%` } });
+            } if (key == 'fakultas_id') {
+                query_and.push({ fakultas_id: { [Op.like]: `%${value}%` } });
             }
         }
         const limit = Number(req.query.size);
@@ -30,7 +32,8 @@ router.route('/prodis')
             {
                 where: [
                     { [Op.or]: query_like.length == 0 ? [{ nama: { [Op.like]: '%%' } }] : query_like },
-                    { [Op.and]: query_and }],
+                    { [Op.and]: query_and },
+                ],
                 limit: (isNaN(limit)) ? null : limit,
                 offset: (isNaN(offset)) ? null : offset * limit,
                 include: [{ model: db.m_fakultas }]
@@ -54,7 +57,7 @@ router.route('/prodis')
         });
     });
 
-    router.route('/prodi/:id')
+router.route('/prodi/:id')
     .get((req, res) => {
         db.m_prodi.findOne(
             {

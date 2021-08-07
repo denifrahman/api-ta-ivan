@@ -34,7 +34,7 @@ router.route('/login')
         console.log(errors);
         if (!errors.isEmpty()) {
             res.status(400).send({
-                code: 400,
+                statusCode: 400,
                 status: false,
                 message: errors.errors
             });
@@ -46,7 +46,7 @@ router.route('/login')
                 }).then((auth) => {
                     if (auth == null) {
                         res.status(400).send({
-                            code: 400,
+                            statusCode: 400,
                             status: false,
                             message: 'user tidak terdaftar'
                         });
@@ -89,7 +89,7 @@ router.route('/login')
                                 });
                             } else {
                                 res.status(401).send({
-                                    code: 401,
+                                    statusCode: 401,
                                     status: false,
                                     message: 'email dan password tidak valid'
                                 });
@@ -107,7 +107,7 @@ router.route('/login-mobile')
         console.log(errors);
         if (!errors.isEmpty()) {
             res.status(400).send({
-                code: 400,
+                statusCode: 400,
                 status: false,
                 message: errors.errors
             });
@@ -119,7 +119,7 @@ router.route('/login-mobile')
                 }).then((auth) => {
                     if (auth == null) {
                         res.status(400).send({
-                            code: 400,
+                            statusCode: 400,
                             status: false,
                             message: 'user tidak terdaftar'
                         });
@@ -148,7 +148,7 @@ router.route('/login-mobile')
                                     'rahasia',
                                     { expiresIn: "365d" }
                                 );
-                                 db.user.update({ fcm_token: req.body.fcm_token }, { where: { id: auth.id } });
+                                db.user.update({ fcm_token: req.body.fcm_token }, { where: { id: auth.id } });
                                 res.status(200).send({
                                     statusCode: 200,
                                     data: {
@@ -163,7 +163,7 @@ router.route('/login-mobile')
                                 });
                             } else {
                                 res.status(401).send({
-                                    code: 401,
+                                    statusCode: 401,
                                     status: false,
                                     message: 'email dan password tidak valid'
                                 });
@@ -177,10 +177,12 @@ router.route('/login-mobile')
 // find all routes
 router.route('/users')
     .get((req, res) => {
-        db.user.findAll({ include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }] }).then((result) => {
+        db.user.findAndCountAll(
+            { where: [{ role: { [Op.in]: ['MAHASISWA'] } }], include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }] }
+        ).then((result) => {
             res.status(200).send(
                 {
-                    code: 200,
+                    statusCode: 200,
                     status: true,
                     data: result,
                     message: "data retreive successfully!"
@@ -189,7 +191,7 @@ router.route('/users')
 
         }).catch(err => {
             res.status(400).send({
-                code: 400,
+                statusCode: 400,
                 status: false,
                 message: err
             });
@@ -202,33 +204,32 @@ router.route('/register')
         let errors = validationResult(req);
         if (!errors.isEmpty()) {
             res.status(400).send({
-                code: 400,
+                statusCode: 400,
                 status: false,
                 message: errors.errors
             });
         } else {
-            req.body.username = req.body.email;
             bcrypt.hash(req.body.password, saltRounds, async function (err, hash) {
                 req.body.password = hash;
                 db.sequelize.transaction(async (t) => {
                     db.user.findOrCreate({
                         where: {
-                            username: req.body.username
+                            email: req.body.email
                         },
                         defaults: req.body
                     }).then(async (result) => {
                         var created = result[1];
                         if (!created) {
                             res.status(400).send({
-                                code: 400,
+                                statusCode: 400,
                                 status: false,
-                                message: `email ${req.body.username} sudah terdaftar`
+                                message: `email ${req.body.email} sudah terdaftar`
                             }); // false if user already exists and was not created.
 
                         } else {
                             res.status(200).send(
                                 {
-                                    code: 200,
+                                    statusCode: 200,
                                     status: true,
                                     data: req.body,
                                     message: "data created successfully!"
@@ -239,6 +240,34 @@ router.route('/register')
                 });
             });
         }
+    });
+
+
+router.route('/user/:id')
+    .put((req, res) => {
+        db.sequelize.transaction(async (t) => {
+            db.user.update(req.body, {
+                where: {
+                    id: req.params.id
+                },
+            }).then(async (result) => {
+                res.status(200).send(
+                    {
+                        statusCode: 200,
+                        status: true,
+                        data: req.body,
+                        message: "data telah berhasil"
+                    }
+                );
+            }).catch(async (err) => {
+                res.status(400).send({
+                    statusCode: 400,
+                    status: false,
+                    message: 'gagal'
+                }); // false if user already exists and was not created.
+                await t.rollback();
+            });
+        });
     });
 
 //update
@@ -252,7 +281,7 @@ router.route('/user')
             }).then(async (result) => {
                 res.status(200).send(
                     {
-                        code: 200,
+                        statusCode: 200,
                         status: true,
                         data: req.body,
                         message: "success"
@@ -260,7 +289,7 @@ router.route('/user')
                 );
             }).catch(async (err) => {
                 res.status(400).send({
-                    code: 400,
+                    statusCode: 400,
                     status: false,
                     message: 'gagal'
                 }); // false if user already exists and was not created.
@@ -269,5 +298,31 @@ router.route('/user')
         });
     });
 
+router.route('/user/:id')
+    .delete((req, res) => {
+        db.sequelize.transaction(async (t) => {
+            db.user.destroy({
+                where: {
+                    id: req.params.id
+                },
+            }).then(async (result) => {
+                res.status(200).send(
+                    {
+                        statusCode: 200,
+                        status: true,
+                        data: req.body,
+                        message: "data telah berhasil"
+                    }
+                );
+            }).catch(async (err) => {
+                res.status(400).send({
+                    statusCode: 400,
+                    status: false,
+                    message: 'gagal'
+                }); // false if user already exists and was not created.
+                await t.rollback();
+            });
+        });
+    });
 module.exports = router;
 

@@ -21,72 +21,163 @@ const validateLogin = [
     check('password').notEmpty().withMessage('password tidak boleh kosong'),
     check('username').notEmpty().withMessage('username tidak boleh kosong'),
 ];
+const validateLoginMobile = [
+    check('password').notEmpty().withMessage('password tidak boleh kosong'),
+    check('username').notEmpty().withMessage('username tidak boleh kosong'),
+    check('fcm_token').notEmpty().withMessage('fcm_token tidak boleh kosong'),
+];
 
 // find all routes
-router.route('/login', validateLogin)
-    .post((req, res) => {
-        bcrypt.hash(req.body.password, saltRounds, async function (err, hash) {
-            console.log(hash);
-            db.user.findOne({
-                where: { username: req.body.username }
-            }).then((auth) => {
-                if (auth == null) {
-                    res.status(400).send({
-                        code: 400,
-                        status: false,
-                        message: 'user tidak terdaftar'
-                    });
-                } else {
-                    console.log(auth);
-                    bcrypt.compare(req.body.password, auth.password).then(function (response) {
-                        if (response) {
-                            var tokenAccess = jwt.sign(
-                                {
-                                    tokenAccess: true,
-                                    id: auth.id,
-                                    username: auth.username,
-                                    role: auth.role,
-                                    iat: Math.round((new Date()).getTime() / 1000)
-                                },
-                                'rahasia',
-                                { expiresIn: "2d" }
-                            );
-                            var tokenRefresh = jwt.sign(
-                                {
-                                    tokenRefresh: true,
-                                    id: auth.id,
-                                    username: auth.username,
-                                    role: auth.role,
-                                    iat: Math.round((new Date()).getTime() / 1000)
-                                },
-                                'rahasia',
-                                { expiresIn: "365d" }
-                            );
-                            res.status(201).send({
-                                statusCode: 201,
-                                data: {
-                                    id: auth.id,
-                                    username: auth.username,
-                                    role: auth.role,
-                                },
-                                access_token: tokenAccess,
-                            });
-                        } else {
-                            res.status(401).send({
-                                code: 401,
-                                status: false,
-                                message: 'email dan password tidak valid'
-                            });
-                        }
-                    });
-                }
-            })
-        });
+router.route('/login')
+    .post(validateLogin, async (req, res) => {
+        let errors = validationResult(req);
+        console.log(errors);
+        if (!errors.isEmpty()) {
+            res.status(400).send({
+                code: 400,
+                status: false,
+                message: errors.errors
+            });
+        } else {
+            bcrypt.hash(req.body.password, saltRounds, async function (err, hash) {
+                db.user.findOne({
+                    include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }],
+                    where: { email: req.body.username },
+                }).then((auth) => {
+                    if (auth == null) {
+                        res.status(400).send({
+                            code: 400,
+                            status: false,
+                            message: 'user tidak terdaftar'
+                        });
+                    } else {
+                        bcrypt.compare(req.body.password, auth.password).then(function (response) {
+                            if (response) {
+                                var tokenAccess = jwt.sign(
+                                    {
+                                        tokenAccess: true,
+                                        id: auth.id,
+                                        username: auth.username,
+                                        role: auth.role,
+                                        iat: Math.round((new Date()).getTime() / 1000)
+                                    },
+                                    'rahasia',
+                                    { expiresIn: "2d" }
+                                );
+                                var tokenRefresh = jwt.sign(
+                                    {
+                                        tokenRefresh: true,
+                                        id: auth.id,
+                                        username: auth.username,
+                                        role: auth.role,
+                                        iat: Math.round((new Date()).getTime() / 1000)
+                                    },
+                                    'rahasia',
+                                    { expiresIn: "365d" }
+                                );
+                                res.status(200).send({
+                                    statusCode: 200,
+                                    data: {
+                                        id: auth.id,
+                                        username: auth.username,
+                                        nama: auth.nama,
+                                        nim: auth.nim,
+                                        prodi: auth.m_prodi,
+                                        role: auth.role,
+                                    },
+                                    access_token: tokenAccess,
+                                });
+                            } else {
+                                res.status(401).send({
+                                    code: 401,
+                                    status: false,
+                                    message: 'email dan password tidak valid'
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+        }
+    });
+// find all routes
+router.route('/login-mobile')
+    .post(validateLoginMobile, async (req, res) => {
+        let errors = validationResult(req);
+        console.log(errors);
+        if (!errors.isEmpty()) {
+            res.status(400).send({
+                code: 400,
+                status: false,
+                message: errors.errors
+            });
+        } else {
+            bcrypt.hash(req.body.password, saltRounds, async function (err, hash) {
+                db.user.findOne({
+                    include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }],
+                    where: { email: req.body.username },
+                }).then((auth) => {
+                    if (auth == null) {
+                        res.status(400).send({
+                            code: 400,
+                            status: false,
+                            message: 'user tidak terdaftar'
+                        });
+                    } else {
+                        bcrypt.compare(req.body.password, auth.password).then(function (response) {
+                            if (response) {
+                                var tokenAccess = jwt.sign(
+                                    {
+                                        tokenAccess: true,
+                                        id: auth.id,
+                                        username: auth.username,
+                                        role: auth.role,
+                                        iat: Math.round((new Date()).getTime() / 1000)
+                                    },
+                                    'rahasia',
+                                    { expiresIn: "2d" }
+                                );
+                                var tokenRefresh = jwt.sign(
+                                    {
+                                        tokenRefresh: true,
+                                        id: auth.id,
+                                        username: auth.username,
+                                        role: auth.role,
+                                        iat: Math.round((new Date()).getTime() / 1000)
+                                    },
+                                    'rahasia',
+                                    { expiresIn: "365d" }
+                                );
+                                 db.user.update({ fcm_token: req.body.fcm_token }, { where: { id: auth.id } });
+                                res.status(200).send({
+                                    statusCode: 200,
+                                    data: {
+                                        id: auth.id,
+                                        username: auth.username,
+                                        nama: auth.nama,
+                                        nim: auth.nim,
+                                        prodi: auth.m_prodi,
+                                        role: auth.role,
+                                    },
+                                    access_token: tokenAccess,
+                                });
+                            } else {
+                                res.status(401).send({
+                                    code: 401,
+                                    status: false,
+                                    message: 'email dan password tidak valid'
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+        }
     });
 // find all routes
 router.route('/users')
     .get((req, res) => {
-        db.user.findAll().then((result) => {
+        db.user.findAll({ include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }] }).then((result) => {
             res.status(200).send(
                 {
                     code: 200,

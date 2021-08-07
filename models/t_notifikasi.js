@@ -10,11 +10,17 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      t_notifikasi.belongsTo(models.user, {
+        foreignKey: {
+          field: 'user_id',
+          name: 'user_id'
+        }
+      })
     }
   };
   t_notifikasi.init({
-    nama: DataTypes.STRING
+    nama: DataTypes.STRING,
+    deskripsi: DataTypes.STRING
   }, {
     sequelize,
     modelName: 't_notifikasi',

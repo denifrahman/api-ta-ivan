@@ -12,8 +12,14 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             user.belongsTo(models.m_prodi, {
                 foreignKey: {
+                    field: 'prodi_id',
+                    name: 'prodi_id'
+                }
+            })
+            user.hasMany(models.user_agenda, {
+                foreignKey: {
                     field: 'user_id',
-                    name:'user_id'
+                    name: 'user_id'
                 }
             })
         }
@@ -21,10 +27,11 @@ module.exports = (sequelize, DataTypes) => {
     user.init({
         nama: DataTypes.STRING,
         email: DataTypes.STRING,
-        username: DataTypes.STRING,
+        nim: DataTypes.INTEGER,
         password: DataTypes.STRING,
         alamat: DataTypes.STRING,
-        role: {type: DataTypes.ENUM('ADMIN', 'MAHASISWA')}
+        fcm_token: DataTypes.STRING,
+        role: { type: DataTypes.ENUM('ADMIN', 'MAHASISWA') }
     }, {
         sequelize,
         modelName: 'user',

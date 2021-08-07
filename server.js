@@ -5,6 +5,8 @@ db.sequelize.sync();
 const app = express();
 var path = require('path');
 const fileUpload = require('express-fileupload');
+const cron = require('node-cron');
+const http = require('http');
 
 require('dotenv').config()
 const whitelist = ['http://localhost:4200', 'https://admin.kenanganmanis.com', 'api.kenanganmanis.com', 'http://api.kenanganmanis.com', '20.55.11.50', 'http://127.0.0.1:4343'];
@@ -86,8 +88,8 @@ app.get("/", (req, res) => {
     res.json({ message: "Welcome to welcome api kenagan manis laundry." });
 });
 
-db.sequelize.sync({ alter: true, force: false }).then(() => {
-    console.log("Drop and re-sync db.");
+db.sequelize.sync({ alter: false, force: false }).then(() => {
+    // console.log("Drop and re-sync db.");
 });
 
 // set port, listen for requests
@@ -95,3 +97,32 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
+
+
+// Schedule tasks to be run on the server.
+cron.schedule('10 * * * * *', function () {
+    //The url we want is: 'www.random.org/integers/?num=1&min=1&max=10&col=1&base=10&format=plain&rnd=new'
+    var options = {
+        host: 'localhost',
+        port: 3000,
+        path: '/api/v1/send-notif'
+    };
+
+    callback = function (response) {
+        var str = '';
+
+        //another chunk of data has been received, so append it to `str`
+        response.on('data', function (chunk) {
+            str += chunk;
+        });
+
+        //the whole response has been received, so we just print it out here
+        response.on('end', function () {
+            // console.log(str);
+        });
+    }
+
+    http.request(options, callback).end();
+});
+
+

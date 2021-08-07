@@ -16,16 +16,22 @@ module.exports = (sequelize, DataTypes) => {
                     name: "universitas_id"
                 }
             })
-            m_agenda.hasMany(models.t_agenda_fakultas, {
+            m_agenda.belongsTo(models.m_fakultas, {
                 foreignKey: {
-                    field: "agenda_id",
-                    name: "agenda_id"
+                    field: "fakultas_id",
+                    name: "fakultas_id"
                 }
             })
-            m_agenda.hasMany(models.t_agenda_prodi, {
+            m_agenda.belongsTo(models.m_prodi, {
                 foreignKey: {
-                    field: "agenda_id",
-                    name: "agenda_id"
+                    field: "prodi_id",
+                    name: "prodi_id"
+                }
+            })
+            m_agenda.hasMany(models.user_agenda, {
+                foreignKey: {
+                    field: 'agenda_id',
+                    name:'agenda_id'
                 }
             })
         }
@@ -33,13 +39,17 @@ module.exports = (sequelize, DataTypes) => {
     m_agenda.init({
         nama: DataTypes.STRING,
         kode: DataTypes.STRING,
-        tanggal_mulai: DataTypes.DATE,
-        tanggal_selesai: DataTypes.DATE,
+        tanggal_mulai: { type: DataTypes.DATE, allowNull: false },
+        tanggal_selesai: { type: DataTypes.DATE, allowNull: false },
+        tanggal_tayang: { type: DataTypes.DATE, allowNull: false },
+        tanggal_non_tayang: { type: DataTypes.DATE, allowNull: false },
         cover: DataTypes.STRING,
-        deskripsi: DataTypes.STRING
+        deskripsi: DataTypes.STRING,
+        poster: DataTypes.STRING
     }, {
         sequelize,
-        modelName: 'm_agenda',
+        tableName: 'agendas',
+        modelName: 'agendas',
     });
     return m_agenda;
 };

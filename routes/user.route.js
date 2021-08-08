@@ -198,6 +198,30 @@ router.route('/users')
         });
     });
 
+// find all routes
+router.route('/user')
+    .get((req, res) => {
+        db.user.findOne(
+            { where: [{ id: {[Op.eq]: req.query.user_id} }, { role: { [Op.in]: ['MAHASISWA'] } }], include: [{ model: db.m_prodi, include: [{ model: db.m_fakultas, include: [{ model: db.m_universitas }] }] }] }
+        ).then((result) => {
+            res.status(200).send(
+                {
+                    statusCode: 200,
+                    status: true,
+                    data: result,
+                    message: "data retreive successfully!"
+                }
+            );
+
+        }).catch(err => {
+            res.status(400).send({
+                statusCode: 400,
+                status: false,
+                message: err
+            });
+        });
+    });
+
 //register
 router.route('/register')
     .post(validateRegister, async (req, res) => {
@@ -256,7 +280,7 @@ router.route('/user/:id')
                         statusCode: 200,
                         status: true,
                         data: req.body,
-                        message: "data telah berhasil"
+                        message: "data telah berhasil di update"
                     }
                 );
             }).catch(async (err) => {

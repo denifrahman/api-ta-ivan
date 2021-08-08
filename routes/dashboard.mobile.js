@@ -71,4 +71,36 @@ router.route('/dashboard-mobile')
         );
     });
 
+router.route('/notif-mobile')
+    .get(async (req, res) => {
+        var data = req.query;
+        var query_like = [];
+        var query_and = [];
+        for (const [key, value] of Object.entries(data)) {
+            if (key == 'q') {
+                query_like.push({ nama: { [Op.like]: `%${value}%` } });
+            } else if (key == 'user_id') {
+                query_and.push({ user_id: { [Op.like]: `%${value}%` } });
+            }
+
+        }
+        const limit = Number(req.query.size);
+        const offset = Number(req.query.page);
+        t_notifikasi = await db.t_notifikasi.findAll(
+            {
+                where: [
+                    { [Op.or]: query_like.length == 0 ? [{ nama: { [Op.like]: '%%' } }] : query_like }, { [Op.and]: query_and }],
+                limit: 10,
+            }
+        );
+        res.status(200).send(
+            {
+                statusCode: 200,
+                status: true,
+                data: t_notifikasi,
+                message: "data retreive successfully!"
+            }
+        );
+    });
+
 module.exports = router;

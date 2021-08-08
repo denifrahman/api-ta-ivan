@@ -122,7 +122,7 @@ router.route('/user-agendas')
                 ],
                 limit: 10,
                 include: [{
-                    model: db.agendas,
+                    model: db.agendas, include: [{ model: db.m_universitas }, { model: db.m_fakultas }, { model: db.m_prodi }]
                 }, { model: db.user }]
             }
         );

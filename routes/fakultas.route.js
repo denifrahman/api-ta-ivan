@@ -107,9 +107,9 @@ router.route('/fakultas')
                         }); // false if user already exists and was not created.
 
                     } else {
-                        res.status(200).send(
+                        res.status(201).send(
                             {
-                                statusCode: 200,
+                                statusCode: 201,
                                 status: true,
                                 data: req.body,
                                 message: "data created successfully!"

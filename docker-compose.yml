@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+  api:
+    container_name: api-ivan
+    image: denifrahman/api-ivan:1.0.0
+    restart: always
+    volumes:
+      - ./files:/src/app/public/upload/images
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M
+    ports: 
+      - 3500:3000
+
+  dashbaord:
+    container_name: admin-ivan
+    image: denifrahman/admin-ivan:1.0.0
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M
+    ports: 
+      - 3400:80
+      # port expose:from port docker

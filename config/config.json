@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "root",
-    "password": "denifa2412@",
-    "database": "ivan",
-    "host": "127.0.0.1",
+    "username": "agenda",
+    "password": "agenda",
+    "database": "agenda",
+    "host": "51.79.249.228",
     "port": 3307,
     "dialect": "mysql"
   },
